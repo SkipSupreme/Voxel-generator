@@ -1,0 +1,62 @@
+[build-system]
+requires = ["setuptools>=61.0", "wheel"]
+build-backend = "setuptools.build_meta"
+
+[project]
+name = "voxel-generator"
+version = "1.0.0"
+description = "Deterministic Voxel Reconstruction: A High-Fidelity Pipeline for Isometric Pixel Art Conversion"
+readme = "README.md"
+license = {text = "GPL-3.0"}
+requires-python = ">=3.9"
+authors = [
+    {name = "Voxel Generator Team"}
+]
+keywords = ["voxel", "pixel-art", "isometric", "3d", "reconstruction", "godot", "blender"]
+classifiers = [
+    "Development Status :: 4 - Beta",
+    "Intended Audience :: Developers",
+    "License :: OSI Approved :: GNU General Public License v3 (GPLv3)",
+    "Programming Language :: Python :: 3",
+    "Programming Language :: Python :: 3.9",
+    "Programming Language :: Python :: 3.10",
+    "Programming Language :: Python :: 3.11",
+    "Programming Language :: Python :: 3.12",
+    "Topic :: Multimedia :: Graphics :: 3D Modeling",
+    "Topic :: Games/Entertainment",
+]
+dependencies = [
+    "numpy>=1.21.0",
+    "numba>=0.56.0",
+    "Pillow>=9.0.0",
+    "scipy>=1.7.0",
+    "pygltflib>=1.15.0",
+]
+
+[project.optional-dependencies]
+dev = [
+    "pytest>=7.0.0",
+    "pytest-cov>=4.0.0",
+    "black>=23.0.0",
+    "mypy>=1.0.0",
+]
+
+[project.scripts]
+voxgen = "voxel_generator.cli:main"
+
+[project.urls]
+"Homepage" = "https://github.com/voxel-generator/voxel-generator"
+"Bug Tracker" = "https://github.com/voxel-generator/voxel-generator/issues"
+
+[tool.setuptools.packages.find]
+where = ["src"]
+
+[tool.black]
+line-length = 100
+target-version = ['py39', 'py310', 'py311', 'py312']
+
+[tool.mypy]
+python_version = "3.9"
+warn_return_any = true
+warn_unused_configs = true
+ignore_missing_imports = true
