@@ -294,7 +294,7 @@ class VoxelGenerator:
         exporter = GLTFExporter(
             convert_colors=convert_colors,
             coordinate_system=coordinate_system,
-            scale=self.voxel_scale
+            scale=1.0  # Mesh is already scaled by the mesher
         )
         exporter.export(self._mesh, output_path)
 
@@ -321,7 +321,7 @@ class VoxelGenerator:
 
         exporter = OBJExporter(
             coordinate_system=coordinate_system,
-            scale=self.voxel_scale,
+            scale=1.0,  # Mesh is already scaled by the mesher
             vertex_colors_mode="extended" if include_colors else "none"
         )
         exporter.export(self._mesh, output_path)
