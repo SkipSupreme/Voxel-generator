@@ -368,17 +368,18 @@ class Voxelizer:
             vx = px + offset_x - w // 2
             vy = py + offset_y - h // 2
 
-            if extrusion_mode == "column" or fill_below:
-                # Fill from z=0 up to depth
+            if extrusion_mode == "column":
+                # Fill from z=0 up to depth (solid pillar)
                 for vz in range(pixel_depth + 1):
                     self._grid.set_voxel(vx, vy, vz, color[0], color[1], color[2])
             elif extrusion_mode == "surface":
-                # Single voxel layer at depth
+                # Single voxel layer at depth (hollow - can see behind)
                 self._grid.set_voxel(vx, vy, pixel_depth, color[0], color[1], color[2])
             elif extrusion_mode == "shell":
-                # Top and bottom surfaces only
+                # Top and bottom surfaces only (hollow box)
                 self._grid.set_voxel(vx, vy, pixel_depth, color[0], color[1], color[2])
-                self._grid.set_voxel(vx, vy, 0, color[0], color[1], color[2])
+                if pixel_depth > 0:
+                    self._grid.set_voxel(vx, vy, 0, color[0], color[1], color[2])
 
         return self._grid
 

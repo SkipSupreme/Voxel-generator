@@ -101,8 +101,8 @@ Depth Modes:
     parser.add_argument(
         "--extrusion",
         choices=["column", "surface", "shell", "billboard"],
-        default="column",
-        help="Voxel extrusion mode (default: column)"
+        default="surface",
+        help="Voxel extrusion mode (default: surface - hollow, can see behind)"
     )
 
     parser.add_argument(
@@ -279,10 +279,7 @@ def process_single(args) -> int:
         if args.extrusion == "billboard":
             generator.voxelize_billboard(args.billboard_thickness)
         else:
-            generator.voxelize(
-                extrusion_mode=args.extrusion,
-                fill_below=(args.extrusion == "column")
-            )
+            generator.voxelize(extrusion_mode=args.extrusion)
 
         # Generate mesh
         if args.verbose:

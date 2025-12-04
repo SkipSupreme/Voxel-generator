@@ -159,18 +159,16 @@ class VoxelGenerator:
 
     def voxelize(
         self,
-        extrusion_mode: str = "column",
-        fill_below: bool = True
+        extrusion_mode: str = "surface"
     ) -> "VoxelGenerator":
         """
         Convert the loaded image to a voxel grid.
 
         Args:
             extrusion_mode: How to fill voxels
-                - "column": Fill from z=0 to depth (solid)
-                - "surface": Single layer at depth
-                - "shell": Hollow with top and bottom
-            fill_below: Whether to fill voxels below the surface
+                - "column": Fill from z=0 to depth (solid pillars)
+                - "surface": Single layer at depth (hollow, can see behind)
+                - "shell": Top and bottom surfaces only (hollow box)
 
         Returns:
             self for method chaining
@@ -198,7 +196,6 @@ class VoxelGenerator:
         self._grid = self._voxelizer.voxelize(
             color_image=self._image_loader.color_image,
             alpha_mask=self._image_loader.alpha_mask,
-            fill_below=fill_below,
             extrusion_mode=extrusion_mode
         )
 
