@@ -34,10 +34,10 @@ def process_image(
     """
     Process an uploaded image and generate voxel models.
 
-    Returns stats text and file paths for downloads.
+    Returns preview path, stats text, and file paths for downloads.
     """
     if image is None:
-        return "Please upload an image first.", None, None, None
+        return None, "Please upload an image first.", None, None, None
 
     # Convert to numpy array with RGBA
     if isinstance(image, np.ndarray):
@@ -50,7 +50,7 @@ def process_image(
         else:
             rgba = image.astype(np.uint8)
     else:
-        return "Invalid image format.", None, None, None
+        return None, "Invalid image format.", None, None, None
 
     # Create generator
     generator = VoxelGenerator(
@@ -100,11 +100,15 @@ def process_image(
     # Create temp directory for exports
     export_dir = tempfile.mkdtemp(prefix="voxel_")
 
+    # Always create GLB for preview
+    preview_path = str(Path(export_dir) / "preview.glb")
+    generator.export_glb(preview_path)
+
     glb_path = None
     vox_path = None
     obj_path = None
 
-    # Export requested formats
+    # Export requested formats for download
     if export_glb:
         glb_path = str(Path(export_dir) / "model.glb")
         generator.export_glb(glb_path)
@@ -117,7 +121,7 @@ def process_image(
         obj_path = str(Path(export_dir) / "model.obj")
         generator.export_obj(obj_path)
 
-    return stats_text, glb_path, vox_path, obj_path
+    return preview_path, stats_text, glb_path, vox_path, obj_path
 
 
 def create_demo_image(style: str):
@@ -188,7 +192,7 @@ with gr.Blocks(title="Voxel Generator") as app:
 
     with gr.Row():
         # Left column - Input
-        with gr.Column():
+        with gr.Column(scale=1):
             gr.Markdown("### Input Image")
 
             image_input = gr.Image(
@@ -251,25 +255,42 @@ with gr.Blocks(title="Voxel Generator") as app:
 
             gr.Markdown("### Export Formats")
             with gr.Row():
-                export_glb = gr.Checkbox(value=True, label="GLB (Godot/Blender)")
-                export_vox = gr.Checkbox(value=True, label="VOX (MagicaVoxel)")
-                export_obj = gr.Checkbox(value=False, label="OBJ (Universal)")
+                export_glb = gr.Checkbox(value=True, label="GLB")
+                export_vox = gr.Checkbox(value=True, label="VOX")
+                export_obj = gr.Checkbox(value=False, label="OBJ")
 
             generate_btn = gr.Button("Generate Voxel Model", variant="primary")
 
-        # Right column - Output
-        with gr.Column():
-            gr.Markdown("### Results")
+        # Middle column - 3D Preview
+        with gr.Column(scale=2):
+            gr.Markdown("### 3D Preview")
+            gr.Markdown("*Click and drag to rotate, scroll to zoom*")
+
+            model_preview = gr.Model3D(
+                label="3D Model Preview",
+                clear_color=[0.1, 0.1, 0.1, 1.0]
+            )
 
             stats_output = gr.Markdown(
                 value="Upload an image and click 'Generate' to see results."
             )
 
+        # Right column - Downloads
+        with gr.Column(scale=1):
             gr.Markdown("### Downloads")
 
-            glb_output = gr.File(label="GLB File")
-            vox_output = gr.File(label="VOX File")
-            obj_output = gr.File(label="OBJ File")
+            glb_output = gr.File(label="GLB (Godot/Blender)")
+            vox_output = gr.File(label="VOX (MagicaVoxel)")
+            obj_output = gr.File(label="OBJ (Universal)")
+
+            gr.Markdown("""
+            ---
+            **Tips:**
+            - **Surface** = hollow (edit-friendly)
+            - **Column** = solid pillars
+            - **Distance Transform** = organic
+            - **Flat** = hard edges
+            """)
 
     # Wire up events
     demo_btn.click(
@@ -291,17 +312,8 @@ with gr.Blocks(title="Voxel Generator") as app:
             export_vox,
             export_obj
         ],
-        outputs=[stats_output, glb_output, vox_output, obj_output]
+        outputs=[model_preview, stats_output, glb_output, vox_output, obj_output]
     )
-
-    # Footer
-    gr.Markdown("""
-    ---
-    **Tips:**
-    - **Surface** mode = hollow models (recommended for editing)
-    - **Column** mode = solid pillars (game-ready)
-    - **Distance Transform** = organic shapes | **Flat** = hard edges
-    """)
 
 
 if __name__ == "__main__":
