@@ -303,7 +303,6 @@ class Voxelizer:
         color_image: np.ndarray,
         alpha_mask: np.ndarray,
         depth_map: Optional[np.ndarray] = None,
-        fill_below: bool = True,
         extrusion_mode: str = "column"
     ) -> VoxelGrid:
         """
@@ -313,7 +312,6 @@ class Voxelizer:
             color_image: RGBA image array of shape (H, W, 4)
             alpha_mask: Binary mask of opaque pixels
             depth_map: Optional explicit depth map (overrides depth_mode)
-            fill_below: If True, fill voxels from z=0 up to the depth value
             extrusion_mode: "column" (fill below), "surface" (single layer),
                           or "shell" (hollow with thickness)
 

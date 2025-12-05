@@ -52,10 +52,15 @@ def process_image(
     else:
         return None, "Invalid image format.", None, None, None
 
+    # Auto-scale depth to be proportional to image size for better 3D appearance
+    # This prevents the "pancake" effect where models look flat
+    img_size = min(rgba.shape[0], rgba.shape[1])
+    effective_depth = max(max_depth, img_size // 2)  # At least half the image size
+
     # Create generator
     generator = VoxelGenerator(
         alpha_threshold=alpha_threshold,
-        max_depth=max_depth,
+        max_depth=effective_depth,
         voxel_scale=voxel_scale
     )
 
@@ -88,13 +93,14 @@ def process_image(
 | Metric | Value |
 |--------|-------|
 | Input Size | {rgba.shape[1]} x {rgba.shape[0]} pixels |
+| Effective Depth | {effective_depth} (auto-scaled from {max_depth}) |
 | Voxel Count | {stats['voxel_count']:,} |
 | Grid Size | {stats['grid_size']} |
 | Vertices | {stats['greedy_vertices']:,} |
 | Triangles | {stats['greedy_triangles']:,} |
 | Vertex Reduction | {stats['vertex_reduction_percent']:.1f}% |
 
-**Settings:** {depth_mode}, Depth={max_depth}, {extrusion_mode}, Scale={voxel_scale}
+**Settings:** {depth_mode}, {extrusion_mode}, Scale={voxel_scale}
 """
 
     # Create temp directory for exports
@@ -225,16 +231,18 @@ with gr.Blocks(title="Voxel Generator") as app:
 
             max_depth = gr.Slider(
                 minimum=4,
-                maximum=64,
-                value=16,
+                maximum=128,
+                value=32,
                 step=4,
-                label="Max Depth (voxel layers)"
+                label="Max Depth",
+                info="Auto-scales to image size if too small"
             )
 
             extrusion_mode = gr.Dropdown(
-                choices=["Surface", "Column", "Shell"],
-                value="Surface",
-                label="Extrusion Mode"
+                choices=["Column", "Surface", "Shell"],
+                value="Column",
+                label="Extrusion Mode",
+                info="Column=solid 3D, Surface=hollow shell, Shell=top+bottom only"
             )
 
             voxel_scale = gr.Slider(
