@@ -5,7 +5,7 @@ Unit tests for the Voxel Generator.
 import sys
 from pathlib import Path
 import numpy as np
-import pytest
+import unittest
 
 # Add src to path
 sys.path.insert(0, str(Path(__file__).parent.parent / "src"))
@@ -18,7 +18,7 @@ from voxel_generator.color import srgb_to_linear, linear_to_srgb
 from voxel_generator.projection import ProjectionMatrix, IsometricProjection
 
 
-class TestVoxelGrid:
+class TestVoxelGrid(unittest.TestCase):
     """Tests for VoxelGrid class."""
 
     def test_create_grid(self):
@@ -64,7 +64,7 @@ class TestVoxelGrid:
         assert len(colors) == 2
 
 
-class TestDepthEstimator:
+class TestDepthEstimator(unittest.TestCase):
     """Tests for depth estimation."""
 
     def test_flat_depth(self):
@@ -102,7 +102,7 @@ class TestDepthEstimator:
         assert np.allclose(depth[mask], expected, atol=1)
 
 
-class TestGreedyMesher:
+class TestGreedyMesher(unittest.TestCase):
     """Tests for greedy meshing."""
 
     def test_empty_grid(self):
@@ -145,7 +145,7 @@ class TestGreedyMesher:
         assert len(greedy_mesh.vertices) < len(naive_mesh.vertices)
 
 
-class TestColorConversion:
+class TestColorConversion(unittest.TestCase):
     """Tests for color space conversion."""
 
     def test_srgb_linear_roundtrip(self):
@@ -170,7 +170,7 @@ class TestColorConversion:
         assert np.allclose(linear[1, :3], 1, atol=0.01)
 
 
-class TestProjection:
+class TestProjection(unittest.TestCase):
     """Tests for projection mathematics."""
 
     def test_world_to_screen(self):
@@ -200,7 +200,7 @@ class TestProjection:
         assert z == z2
 
 
-class TestVoxelGenerator:
+class TestVoxelGenerator(unittest.TestCase):
     """Integration tests for VoxelGenerator."""
 
     def test_basic_pipeline(self):
@@ -233,4 +233,4 @@ class TestVoxelGenerator:
 
 
 if __name__ == "__main__":
-    pytest.main([__file__, "-v"])
+    unittest.main(verbosity=2)
