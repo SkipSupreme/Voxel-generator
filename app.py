@@ -36,8 +36,12 @@ def process_image(
 
     Returns preview path, stats text, and file paths for downloads.
     """
+    print("[DEBUG] process_image called")
+
     if image is None:
         return None, "Please upload an image first.", None, None, None
+
+    print(f"[DEBUG] Image shape: {image.shape if hasattr(image, 'shape') else 'N/A'}")
 
     # Convert to numpy array with RGBA
     if isinstance(image, np.ndarray):
@@ -52,10 +56,14 @@ def process_image(
     else:
         return None, "Invalid image format.", None, None, None
 
+    print(f"[DEBUG] RGBA shape: {rgba.shape}")
+
     # Auto-scale depth to be proportional to image size for better 3D appearance
     # This prevents the "pancake" effect where models look flat
     img_size = min(rgba.shape[0], rgba.shape[1])
     effective_depth = max(max_depth, img_size // 2)  # At least half the image size
+
+    print(f"[DEBUG] Creating generator with depth={effective_depth}")
 
     # Create generator
     generator = VoxelGenerator(
@@ -66,6 +74,7 @@ def process_image(
 
     # Load the image
     generator.load_array(rgba)
+    print("[DEBUG] Image loaded")
 
     # Set depth mode
     mode_map = {
@@ -78,15 +87,20 @@ def process_image(
     }
     generator.set_depth_mode(mode_map.get(depth_mode, "distance_transform"))
 
+    print("[DEBUG] Voxelizing...")
     # Voxelize
     extrusion_map = {"Surface": "surface", "Column": "column", "Shell": "shell"}
     generator.voxelize(extrusion_mode=extrusion_map.get(extrusion_mode, "surface"))
+    print("[DEBUG] Voxelization complete")
 
+    print("[DEBUG] Generating mesh (this may take time on first run)...")
     # Generate mesh
     generator.generate_mesh(greedy=True, center=True)
+    print("[DEBUG] Mesh generation complete")
 
     # Get stats
     stats = generator.get_mesh_stats()
+    print(f"[DEBUG] Stats: {stats['voxel_count']} voxels, {stats['greedy_vertices']} vertices")
 
     stats_text = f"""## Voxelization Complete!
 
@@ -105,10 +119,13 @@ def process_image(
 
     # Create temp directory for exports
     export_dir = tempfile.mkdtemp(prefix="voxel_")
+    print(f"[DEBUG] Export dir: {export_dir}")
 
     # Always create GLB for preview
     preview_path = str(Path(export_dir) / "preview.glb")
+    print("[DEBUG] Exporting preview GLB...")
     generator.export_glb(preview_path)
+    print(f"[DEBUG] Preview exported to {preview_path}")
 
     glb_path = None
     vox_path = None
@@ -117,16 +134,20 @@ def process_image(
     # Export requested formats for download
     if export_glb:
         glb_path = str(Path(export_dir) / "model.glb")
+        print("[DEBUG] Exporting GLB...")
         generator.export_glb(glb_path)
 
     if export_vox:
         vox_path = str(Path(export_dir) / "model.vox")
+        print("[DEBUG] Exporting VOX...")
         generator.export_vox(vox_path)
 
     if export_obj:
         obj_path = str(Path(export_dir) / "model.obj")
+        print("[DEBUG] Exporting OBJ...")
         generator.export_obj(obj_path)
 
+    print("[DEBUG] All exports complete, returning results")
     return preview_path, stats_text, glb_path, vox_path, obj_path
 
 
@@ -275,8 +296,7 @@ with gr.Blocks(title="Voxel Generator") as app:
             gr.Markdown("*Click and drag to rotate, scroll to zoom*")
 
             model_preview = gr.Model3D(
-                label="3D Model Preview",
-                clear_color=[0.1, 0.1, 0.1, 1.0]
+                label="3D Model Preview"
             )
 
             stats_output = gr.Markdown(
